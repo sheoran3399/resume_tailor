@@ -1,0 +1,660 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Resume Tailor - AI-Powered Resume Customization</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            color: white;
+            margin-bottom: 40px;
+        }
+
+        header h1 {
+            font-size: 3em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+        }
+
+        header p {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+
+        .card {
+            background: white;
+            border-radius: 12px;
+            padding: 30px;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+
+        .card h2 {
+            color: #667eea;
+            margin-bottom: 20px;
+            font-size: 1.8em;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        input[type="file"],
+        input[type="url"],
+        input[type="text"] {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 12px 30px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 20px;
+            color: #667eea;
+        }
+
+        .loading.active {
+            display: block;
+        }
+
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 10px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .success-message {
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            display: none;
+        }
+
+        .success-message.active {
+            display: block;
+        }
+
+        .error-message {
+            background: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            display: none;
+        }
+
+        .error-message.active {
+            display: block;
+        }
+
+        .preview-section {
+            margin-top: 20px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            display: none;
+        }
+
+        .preview-section.active {
+            display: block;
+        }
+
+        .preview-section h3 {
+            color: #667eea;
+            margin-bottom: 10px;
+        }
+
+        .text-preview {
+            max-height: 200px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            font-size: 14px;
+            color: #555;
+            background: white;
+            padding: 10px;
+            border-radius: 5px;
+            border: 1px solid #e0e0e0;
+        }
+
+        .recommendations {
+            display: none;
+            margin-top: 20px;
+        }
+
+        .recommendations.active {
+            display: block;
+        }
+
+        .recommendations-content {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            border-left: 4px solid #667eea;
+        }
+
+        .recommendations-content h3 {
+            color: #667eea;
+            margin-top: 20px;
+            margin-bottom: 10px;
+        }
+
+        .recommendations-content h3:first-child {
+            margin-top: 0;
+        }
+
+        .recommendations-content p {
+            line-height: 1.6;
+            color: #555;
+            margin-bottom: 10px;
+        }
+
+        .recommendations-content ul {
+            margin-left: 20px;
+            line-height: 1.8;
+            color: #555;
+        }
+
+        .recommendations-content strong {
+            color: #333;
+        }
+
+        .step-indicator {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 30px;
+            padding: 20px;
+            background: white;
+            border-radius: 12px;
+        }
+
+        .step {
+            flex: 1;
+            text-align: center;
+            padding: 10px;
+            position: relative;
+        }
+
+        .step::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            right: -50%;
+            width: 100%;
+            height: 2px;
+            background: #e0e0e0;
+            transform: translateY(-50%);
+            z-index: -1;
+        }
+
+        .step:last-child::after {
+            display: none;
+        }
+
+        .step-number {
+            display: inline-block;
+            width: 40px;
+            height: 40px;
+            line-height: 40px;
+            border-radius: 50%;
+            background: #e0e0e0;
+            color: #888;
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+
+        .step.active .step-number {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .step.completed .step-number {
+            background: #28a745;
+            color: white;
+        }
+
+        .step-label {
+            font-size: 14px;
+            color: #888;
+        }
+
+        .step.active .step-label {
+            color: #667eea;
+            font-weight: 600;
+        }
+
+        @media (max-width: 768px) {
+            header h1 {
+                font-size: 2em;
+            }
+
+            .card {
+                padding: 20px;
+            }
+
+            .step-indicator {
+                flex-direction: column;
+            }
+
+            .step::after {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Resume Tailor</h1>
+            <p>AI-Powered Resume Customization with Claude</p>
+        </header>
+
+        <div class="step-indicator">
+            <div class="step active" id="step1">
+                <div class="step-number">1</div>
+                <div class="step-label">Upload Resume</div>
+            </div>
+            <div class="step" id="step2">
+                <div class="step-number">2</div>
+                <div class="step-label">Job Description</div>
+            </div>
+            <div class="step" id="step3">
+                <div class="step-number">3</div>
+                <div class="step-label">Get Recommendations</div>
+            </div>
+        </div>
+
+        <!-- Step 1: Upload Resume -->
+        <div class="card" id="resumeCard">
+            <h2>Step 1: Upload Your Resume</h2>
+            <div class="success-message" id="resumeSuccess"></div>
+            <div class="error-message" id="resumeError"></div>
+
+            <div class="form-group">
+                <label for="resumeFile">Select PDF Resume:</label>
+                <input type="file" id="resumeFile" accept=".pdf">
+            </div>
+
+            <button id="uploadResumeBtn">Upload Resume</button>
+
+            <div class="loading" id="resumeLoading">
+                <div class="spinner"></div>
+                <p>Processing your resume...</p>
+            </div>
+
+            <div class="preview-section" id="resumePreview">
+                <h3>Resume Preview (first 500 characters):</h3>
+                <div class="text-preview" id="resumeText"></div>
+            </div>
+        </div>
+
+        <!-- Step 2: Job Description URL -->
+        <div class="card" id="jobCard" style="display: none;">
+            <h2>Step 2: Enter Job Description URL</h2>
+            <div class="success-message" id="jobSuccess"></div>
+            <div class="error-message" id="jobError"></div>
+
+            <div class="form-group">
+                <label for="jobUrl">Job Posting URL:</label>
+                <input type="url" id="jobUrl" placeholder="https://example.com/job-posting">
+            </div>
+
+            <button id="fetchJobBtn">Fetch Job Description</button>
+
+            <div class="loading" id="jobLoading">
+                <div class="spinner"></div>
+                <p>Fetching job description...</p>
+            </div>
+
+            <div class="preview-section" id="jobPreview">
+                <h3>Job Description Preview (first 500 characters):</h3>
+                <div class="text-preview" id="jobText"></div>
+            </div>
+        </div>
+
+        <!-- Step 3: Analysis -->
+        <div class="card" id="analysisCard" style="display: none;">
+            <h2>Step 3: Get AI Recommendations</h2>
+            <div class="error-message" id="analysisError"></div>
+
+            <p style="margin-bottom: 20px; color: #555;">
+                Click below to analyze your resume against the job description and receive personalized recommendations.
+            </p>
+
+            <button id="analyzeBtn">Analyze & Get Recommendations</button>
+
+            <div class="loading" id="analysisLoading">
+                <div class="spinner"></div>
+                <p>Analyzing your resume with Claude AI...</p>
+            </div>
+
+            <div class="recommendations" id="recommendations">
+                <div class="recommendations-content" id="recommendationsContent"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // State management
+        let resumeText = '';
+        let jobDescriptionText = '';
+
+        // DOM Elements
+        const resumeFile = document.getElementById('resumeFile');
+        const uploadResumeBtn = document.getElementById('uploadResumeBtn');
+        const resumeLoading = document.getElementById('resumeLoading');
+        const resumeSuccess = document.getElementById('resumeSuccess');
+        const resumeError = document.getElementById('resumeError');
+        const resumePreview = document.getElementById('resumePreview');
+        const resumeTextDiv = document.getElementById('resumeText');
+
+        const jobCard = document.getElementById('jobCard');
+        const jobUrl = document.getElementById('jobUrl');
+        const fetchJobBtn = document.getElementById('fetchJobBtn');
+        const jobLoading = document.getElementById('jobLoading');
+        const jobSuccess = document.getElementById('jobSuccess');
+        const jobError = document.getElementById('jobError');
+        const jobPreview = document.getElementById('jobPreview');
+        const jobTextDiv = document.getElementById('jobText');
+
+        const analysisCard = document.getElementById('analysisCard');
+        const analyzeBtn = document.getElementById('analyzeBtn');
+        const analysisLoading = document.getElementById('analysisLoading');
+        const analysisError = document.getElementById('analysisError');
+        const recommendations = document.getElementById('recommendations');
+        const recommendationsContent = document.getElementById('recommendationsContent');
+
+        // Step indicators
+        const step1 = document.getElementById('step1');
+        const step2 = document.getElementById('step2');
+        const step3 = document.getElementById('step3');
+
+        // Utility functions
+        function showLoading(element) {
+            element.classList.add('active');
+        }
+
+        function hideLoading(element) {
+            element.classList.remove('active');
+        }
+
+        function showMessage(element, message) {
+            element.textContent = message;
+            element.classList.add('active');
+            setTimeout(() => element.classList.remove('active'), 5000);
+        }
+
+        function hideMessage(element) {
+            element.classList.remove('active');
+        }
+
+        function updateStep(step, status) {
+            if (status === 'active') {
+                step.classList.add('active');
+                step.classList.remove('completed');
+            } else if (status === 'completed') {
+                step.classList.remove('active');
+                step.classList.add('completed');
+            } else {
+                step.classList.remove('active', 'completed');
+            }
+        }
+
+        // Step 1: Upload Resume
+        uploadResumeBtn.addEventListener('click', async () => {
+            const file = resumeFile.files[0];
+
+            if (!file) {
+                showMessage(resumeError, 'Please select a PDF file');
+                return;
+            }
+
+            if (!file.name.endsWith('.pdf')) {
+                showMessage(resumeError, 'Only PDF files are allowed');
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append('file', file);
+
+            uploadResumeBtn.disabled = true;
+            showLoading(resumeLoading);
+            hideMessage(resumeError);
+            hideMessage(resumeSuccess);
+
+            try {
+                const response = await fetch('/api/upload-resume', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(data.detail || 'Failed to upload resume');
+                }
+
+                resumeText = data.text;
+                resumeTextDiv.textContent = resumeText.substring(0, 500) + '...';
+                resumePreview.classList.add('active');
+
+                showMessage(resumeSuccess, data.message);
+
+                // Update steps
+                updateStep(step1, 'completed');
+                updateStep(step2, 'active');
+
+                // Show next card
+                jobCard.style.display = 'block';
+                jobCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+            } catch (error) {
+                showMessage(resumeError, error.message);
+            } finally {
+                uploadResumeBtn.disabled = false;
+                hideLoading(resumeLoading);
+            }
+        });
+
+        // Step 2: Fetch Job Description
+        fetchJobBtn.addEventListener('click', async () => {
+            const url = jobUrl.value.trim();
+
+            if (!url) {
+                showMessage(jobError, 'Please enter a job posting URL');
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append('url', url);
+
+            fetchJobBtn.disabled = true;
+            showLoading(jobLoading);
+            hideMessage(jobError);
+            hideMessage(jobSuccess);
+
+            try {
+                const response = await fetch('/api/fetch-job-description', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(data.detail || 'Failed to fetch job description');
+                }
+
+                jobDescriptionText = data.text;
+                jobTextDiv.textContent = jobDescriptionText.substring(0, 500) + '...';
+                jobPreview.classList.add('active');
+
+                showMessage(jobSuccess, data.message);
+
+                // Update steps
+                updateStep(step2, 'completed');
+                updateStep(step3, 'active');
+
+                // Show next card
+                analysisCard.style.display = 'block';
+                analysisCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+            } catch (error) {
+                showMessage(jobError, error.message);
+            } finally {
+                fetchJobBtn.disabled = false;
+                hideLoading(jobLoading);
+            }
+        });
+
+        // Step 3: Analyze Resume
+        analyzeBtn.addEventListener('click', async () => {
+            if (!resumeText || !jobDescriptionText) {
+                showMessage(analysisError, 'Please complete steps 1 and 2 first');
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append('resume_text', resumeText);
+            formData.append('job_description', jobDescriptionText);
+
+            analyzeBtn.disabled = true;
+            showLoading(analysisLoading);
+            hideMessage(analysisError);
+            recommendations.classList.remove('active');
+
+            try {
+                const response = await fetch('/api/analyze', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(data.detail || 'Failed to analyze resume');
+                }
+
+                // Convert markdown to HTML (basic conversion)
+                const htmlContent = markdownToHtml(data.recommendations);
+                recommendationsContent.innerHTML = htmlContent;
+                recommendations.classList.add('active');
+
+                // Update step
+                updateStep(step3, 'completed');
+
+                // Scroll to recommendations
+                recommendations.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+            } catch (error) {
+                showMessage(analysisError, error.message);
+            } finally {
+                analyzeBtn.disabled = false;
+                hideLoading(analysisLoading);
+            }
+        });
+
+        // Simple markdown to HTML converter
+        function markdownToHtml(markdown) {
+            let html = markdown;
+
+            // Headers
+            html = html.replace(/^### (.*$)/gim, '<h3>$1</h3>');
+            html = html.replace(/^## (.*$)/gim, '<h3>$1</h3>');
+            html = html.replace(/^# (.*$)/gim, '<h3>$1</h3>');
+
+            // Bold
+            html = html.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+
+            // Lists
+            html = html.replace(/^\* (.*$)/gim, '<li>$1</li>');
+            html = html.replace(/^\- (.*$)/gim, '<li>$1</li>');
+            html = html.replace(/(<li>.*<\/li>)/s, '<ul>$1</ul>');
+
+            // Paragraphs
+            html = html.replace(/\n\n/g, '</p><p>');
+            html = '<p>' + html + '</p>';
+
+            // Line breaks
+            html = html.replace(/\n/g, '<br>');
+
+            return html;
+        }
+    </script>
+</body>
+</html>
